@@ -1,0 +1,1 @@
+AI CCTV App is a smart video surveillance system that uses AI/ML to monitor CCTV camera feeds and automatically detect events like: 🚶 Person/Object Detection — identifying people, vehicles, or items in frame ⚠️ Anomaly Alerts — flagging unusual activity or intrusions 📊 Analytics Dashboard 🎥 Real-time Processing
