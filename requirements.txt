@@ -1,0 +1,11 @@
+fastapi>=0.110.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+pydantic>=2.7.0
+numpy>=1.26.0
+opencv-python-headless>=4.9.0
+openai>=1.30.0
+python-dotenv>=1.0.0
+scikit-learn>=1.4.0
+onnxruntime>=1.17.0
+huggingface_hub>=0.23.0

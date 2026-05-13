@@ -1,0 +1,1 @@
+"""CCTV Analytics backend package."""

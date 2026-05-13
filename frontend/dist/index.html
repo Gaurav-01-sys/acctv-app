@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StoreVision — CCTV Store Analytics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Base ─────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:16px;-webkit-font-smoothing:antialiased}
+body{background:#f0f4f8;color:#1e293b;min-height:100vh}
+button{font:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font:inherit}
+a{text-decoration:none;color:inherit}
+
+/* ── App Shell ────────────────────────────────────────────────────────── */
+.app-shell{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* ── Header ───────────────────────────────────────────────────────────── */
+.header{display:flex;align-items:center;justify-content:space-between;padding:20px 0;margin-bottom:8px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem;color:#1e293b}
+.logo-icon{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#e0f2fe,#dbeafe);display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px;color:#0ea5e9}
+.logout-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;color:#475569;font-size:.875rem;font-weight:500;transition:all .15s}
+.logout-btn:hover{border-color:#cbd5e1;background:#f8fafc}
+.logout-btn svg{width:16px;height:16px}
+
+/* ── Hero Section ─────────────────────────────────────────────────────── */
+.hero{text-align:center;padding:48px 0 40px}
+.hero h1{font-size:clamp(2rem,5vw,3rem);font-weight:800;letter-spacing:-.03em;color:#0f172a;margin-bottom:16px;line-height:1.1}
+.hero p{color:#64748b;font-size:1.05rem;line-height:1.6;max-width:540px;margin:0 auto 32px}
+.upload-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;font-weight:600;font-size:1rem;box-shadow:0 4px 20px rgba(124,58,237,.25);transition:all .2s}
+.upload-btn:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(124,58,237,.35)}
+.upload-btn svg{width:18px;height:18px}
+
+/* ── Feature Cards ────────────────────────────────────────────────────── */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
+.feature-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;transition:all .2s}
+.feature-card:hover{border-color:#cbd5e1;box-shadow:0 4px 16px rgba(0,0,0,.04)}
+.feature-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.feature-icon svg{width:20px;height:20px}
+.feature-icon.people{background:#ede9fe;color:#7c3aed}
+.feature-icon.queue{background:#dbeafe;color:#3b82f6}
+.feature-icon.heatmap{background:#d1fae5;color:#10b981}
+.feature-icon.anomaly{background:#fef3c7;color:#f59e0b}
+.feature-card h3{font-size:.95rem;font-weight:700;color:#0f172a;margin-bottom:6px}
+.feature-card p{font-size:.85rem;color:#64748b;line-height:1.5}
+
+/* ── Stats Bar ────────────────────────────────────────────────────────── */
+.stats-bar{display:flex;align-items:center;justify-content:center;gap:64px;padding:28px 32px;background:#fffbeb;border:1px solid #fef3c7;border-radius:16px;margin-bottom:48px}
+.stat{text-align:center}
+.stat .value{font-size:1.75rem;font-weight:800;letter-spacing:-.02em}
+.stat .value.teal{color:#0d9488}
+.stat .value.dark{color:#1e293b}
+.stat .value.amber{color:#d97706}
+.stat .label{font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#64748b;margin-top:4px}
+
+/* ── Previous Analyses Section ────────────────────────────────────────── */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.section-header h2{font-size:1.15rem;font-weight:700;color:#0f172a}
+.clear-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;color:#64748b;font-size:.8rem;font-weight:500;transition:all .15s}
+.clear-btn:hover{border-color:#fca5a5;color:#dc2626;background:#fef2f2}
+.clear-btn svg{width:14px;height:14px}
+
+/* ── Empty State ──────────────────────────────────────────────────────── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 24px;text-align:center}
+.empty-icon{width:48px;height:48px;border-radius:12px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.empty-icon svg{width:22px;height:22px;color:#94a3b8}
+.empty-state h3{font-size:1rem;font-weight:600;color:#334155;margin-bottom:6px}
+.empty-state p{font-size:.9rem;color:#94a3b8}
+
+/* ── Analysis Cards (when analyses exist) ─────────────────────────────── */
+.analysis-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.analysis-card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:20px;cursor:pointer;transition:all .2s}
+.analysis-card:hover{border-color:#7c3aed;box-shadow:0 4px 20px rgba(124,58,237,.08)}
+.analysis-card .store-name{font-weight:700;font-size:1rem;color:#0f172a;margin-bottom:4px}
+.analysis-card .camera-name{color:#64748b;font-size:.85rem;margin-bottom:12px}
+.analysis-card .meta{display:flex;gap:16px;flex-wrap:wrap}
+.analysis-card .meta span{font-size:.8rem;color:#64748b}
+.analysis-card .meta strong{color:#0f172a}
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:.75rem;font-weight:600}
+.status-badge.ready{background:#d1fae5;color:#065f46}
+.status-badge.processing{background:#dbeafe;color:#1e40af}
+.status-badge.draft{background:#f1f5f9;color:#475569}
+.status-badge.failed{background:#fee2e2;color:#991b1b}
+
+/* ── Upload Modal ─────────────────────────────────────────────────────── */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.4);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.active{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:20px;padding:32px;width:min(480px,calc(100vw - 48px));box-shadow:0 24px 64px rgba(0,0,0,.15);transform:translateY(12px);transition:transform .2s}
+.modal-overlay.active .modal{transform:translateY(0)}
+.modal h2{font-size:1.25rem;font-weight:700;margin-bottom:4px}
+.modal .subtitle{color:#64748b;font-size:.9rem;margin-bottom:24px}
+.modal label{display:block;margin-bottom:16px}
+.modal label span{display:block;font-size:.85rem;font-weight:500;color:#334155;margin-bottom:6px}
+.modal input,.modal select{width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;font-size:.9rem;transition:border-color .15s}
+.modal input:focus,.modal select:focus{outline:none;border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.modal-actions{display:flex;gap:12px;margin-top:24px}
+.modal-actions button{flex:1;padding:12px;border-radius:10px;font-weight:600;font-size:.9rem}
+.btn-cancel{background:#f1f5f9;color:#475569}
+.btn-cancel:hover{background:#e2e8f0}
+.btn-submit{background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;box-shadow:0 4px 16px rgba(124,58,237,.2)}
+.btn-submit:hover{box-shadow:0 6px 24px rgba(124,58,237,.3)}
+.btn-submit:disabled{opacity:.6;cursor:not-allowed}
+
+/* ── Analysis Detail View ──────────────────────────────────────────────── */
+.detail-view{display:none}
+.detail-view.active{display:block}
+.home-view.hidden{display:none}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;color:#475569;font-size:.875rem;font-weight:500;margin-bottom:24px;transition:all .15s}
+.back-btn:hover{border-color:#cbd5e1;background:#f8fafc}
+.detail-header{margin-bottom:24px}
+.detail-header h1{font-size:1.75rem;font-weight:800;color:#0f172a;margin-bottom:4px}
+.detail-header p{color:#64748b;font-size:.95rem}
+.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.metric-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:18px}
+.metric-card .metric-label{font-size:.8rem;color:#64748b;margin-bottom:4px}
+.metric-card .metric-value{font-size:1.5rem;font-weight:800;color:#0f172a}
+.detail-section{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;margin-bottom:16px}
+.detail-section h3{font-size:1rem;font-weight:700;margin-bottom:16px}
+.zone-table{width:100%;border-collapse:collapse}
+.zone-table th,.zone-table td{text-align:left;padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:.85rem}
+.zone-table th{color:#64748b;font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em}
+.insight-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.insight-item{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px}
+.insight-item h4{font-size:.9rem;font-weight:600;margin-bottom:6px}
+.insight-item p{font-size:.85rem;color:#64748b;line-height:1.5}
+.exec-summary{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:20px;margin-bottom:24px;font-size:.95rem;line-height:1.6;color:#166534}
+
+/* ── Progress Bar ─────────────────────────────────────────────────────── */
+.progress-container{margin-top:12px}
+.progress-bar{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7c3aed,#06b6d4);border-radius:99px;transition:width .3s ease}
+.progress-label{font-size:.8rem;color:#64748b;margin-top:6px}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+@media(max-width:640px){
+  .stats-bar{flex-direction:column;gap:20px}
+  .features{grid-template-columns:1fr 1fr}
+  .hero h1{font-size:1.75rem}
+}
+@media(max-width:420px){
+  .features{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ── Header ──────────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+        </svg>
+      </div>
+      StoreVision
+    </div>
+    <button class="logout-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      Logout
+    </button>
+  </header>
+
+  <!-- ── Home View ───────────────────────────────────────────────────── -->
+  <div id="home-view" class="home-view">
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1>CCTV Store Analytics</h1>
+      <p>Upload your footage and get instant AI-powered insights on customer behavior, queue patterns, and optimization opportunities.</p>
+      <button class="upload-btn" onclick="openUploadModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Upload Video
+      </button>
+    </section>
+
+    <!-- Feature Cards -->
+    <section class="features">
+      <div class="feature-card">
+        <div class="feature-icon people">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+        </div>
+        <h3>People Tracking</h3>
+        <p>AI Vision detection with real-time path analysis</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon queue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </div>
+        <h3>Queue Intelligence</h3>
+        <p>Detect bottlenecks and optimize checkout flow</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon heatmap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+        <h3>Heatmap Analysis</h3>
+        <p>Discover customer hotspots and engagement zones</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon anomaly">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <h3>Anomaly Detection</h3>
+        <p>Identify unusual patterns and security concerns</p>
+      </div>
+    </section>
+
+    <!-- Stats Bar -->
+    <section class="stats-bar">
+      <div class="stat">
+        <div class="value teal">99.2%</div>
+        <div class="label">Accuracy</div>
+      </div>
+      <div class="stat">
+        <div class="value dark">&lt;30s</div>
+        <div class="label">Processing Time</div>
+      </div>
+      <div class="stat">
+        <div class="value amber">24/7</div>
+        <div class="label">Monitoring</div>
+      </div>
+    </section>
+
+    <!-- Previous Analyses -->
+    <section>
+      <div class="section-header">
+        <h2>Previous Analyses</h2>
+        <button class="clear-btn" onclick="clearAll()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>
+          </svg>
+          Clear All
+        </button>
+      </div>
+      <div id="analyses-container">
+        <div class="empty-state" id="empty-state">
+          <div class="empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3>No previous analyses found</h3>
+          <p>Upload a video to get started</p>
+        </div>
+        <div class="analysis-grid" id="analysis-grid" style="display:none"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ── Detail View ─────────────────────────────────────────────────── -->
+  <div id="detail-view" class="detail-view"></div>
+
+</div>
+
+<!-- ── Upload Modal ──────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="upload-modal">
+  <div class="modal">
+    <h2>Upload Video</h2>
+    <p class="subtitle">Upload CCTV footage for AI-powered analysis</p>
+    <form id="upload-form" onsubmit="handleUpload(event)">
+      <label>
+        <span>Store Name</span>
+        <input type="text" name="store_name" placeholder="Downtown flagship" required>
+      </label>
+      <label>
+        <span>Camera Location</span>
+        <input type="text" name="camera_name" placeholder="Checkout cam 01" required>
+      </label>
+      <label>
+        <span>Recording Date</span>
+        <input type="date" name="recorded_at" required>
+      </label>
+      <label>
+        <span>Video File</span>
+        <input type="file" name="file" accept="video/*" required>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeUploadModal()">Cancel</button>
+        <button type="submit" class="btn-submit" id="submit-btn">Upload &amp; Analyze</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   StoreVision Frontend — API Integration
+   ═══════════════════════════════════════════════════════════════════════ */
+
+const API = '';  // Same origin
+
+let videos = [];
+let pollTimers = {};
+
+// ── Init ──────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', loadVideos);
+
+async function loadVideos() {
+  try {
+    const res = await fetch(`${API}/api/videos`);
+    videos = await res.json();
+    renderAnalyses();
+  } catch (e) {
+    console.error('Failed to load videos:', e);
+  }
+}
+
+// ── Upload Modal ──────────────────────────────────────────────────────
+function openUploadModal() {
+  document.getElementById('upload-modal').classList.add('active');
+}
+
+function closeUploadModal() {
+  document.getElementById('upload-modal').classList.remove('active');
+  document.getElementById('upload-form').reset();
+}
+
+async function handleUpload(e) {
+  e.preventDefault();
+  const form = e.target;
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Uploading...';
+
+  const formData = new FormData(form);
+  try {
+    const res = await fetch(`${API}/api/videos/upload`, { method: 'POST', body: formData });
+    if (!res.ok) throw new Error('Upload failed');
+    const data = await res.json();
+    closeUploadModal();
+
+    // Auto-run analysis
+    const videoId = data.video.id;
+    const analyzeRes = await fetch(`${API}/api/videos/${videoId}/analyze`, { method: 'POST' });
+    await loadVideos();
+
+    // Start polling for this video
+    startPolling(videoId);
+  } catch (err) {
+    alert('Upload failed: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Upload & Analyze';
+  }
+}
+
+// ── Polling for analysis progress ─────────────────────────────────────
+function startPolling(videoId) {
+  if (pollTimers[videoId]) clearInterval(pollTimers[videoId]);
+  pollTimers[videoId] = setInterval(async () => {
+    try {
+      const res = await fetch(`${API}/api/videos/${videoId}`);
+      const data = await res.json();
+      const status = data.video.status;
+      if (status === 'ready' || status === 'failed') {
+        clearInterval(pollTimers[videoId]);
+        delete pollTimers[videoId];
+        await loadVideos();
+      } else {
+        // Update progress in-place
+        updateCardProgress(videoId, data);
+      }
+    } catch (e) { /* silent */ }
+  }, 2000);
+}
+
+function updateCardProgress(videoId, data) {
+  const card = document.querySelector(`[data-video-id="${videoId}"]`);
+  if (!card) return;
+  const progressEl = card.querySelector('.progress-fill');
+  const labelEl = card.querySelector('.progress-label');
+  if (progressEl && data.job) {
+    progressEl.style.width = data.job.progress + '%';
+    if (labelEl) labelEl.textContent = data.job.message || 'Processing...';
+  }
+}
+
+// ── Render Analyses List ──────────────────────────────────────────────
+function renderAnalyses() {
+  const grid = document.getElementById('analysis-grid');
+  const empty = document.getElementById('empty-state');
+
+  if (videos.length === 0) {
+    grid.style.display = 'none';
+    empty.style.display = 'flex';
+    return;
+  }
+
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.innerHTML = videos.map(item => {
+    const v = item.video;
+    const job = item.job;
+    const result = item.result;
+    const status = v.status || 'draft';
+    const isProcessing = status === 'processing';
+
+    let metaHtml = `<span><strong>${v.camera_name}</strong></span>`;
+    metaHtml += `<span>${v.recorded_at || ''}</span>`;
+    metaHtml += `<span>${Math.round(v.file_size_bytes / 1024)} KB</span>`;
+
+    if (result) {
+      metaHtml += `<span><strong>${result.summary_metrics.visitors}</strong> visitors</span>`;
+    }
+
+    let progressHtml = '';
+    if (isProcessing && job) {
+      progressHtml = `
+        <div class="progress-container">
+          <div class="progress-bar"><div class="progress-fill" style="width:${job.progress}%"></div></div>
+          <div class="progress-label">${job.message || 'Processing...'}</div>
+        </div>`;
+      // Start polling
+      startPolling(v.id);
+    }
+
+    return `
+      <div class="analysis-card" data-video-id="${v.id}" onclick="${result ? `showDetail('${v.id}')` : ''}">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div>
+            <div class="store-name">${v.store_name}</div>
+            <div class="camera-name">${v.camera_name}</div>
+          </div>
+          <span class="status-badge ${status}">${status}</span>
+        </div>
+        <div class="meta">${metaHtml}</div>
+        ${progressHtml}
+      </div>`;
+  }).join('');
+}
+
+// ── Clear All ─────────────────────────────────────────────────────────
+async function clearAll() {
+  if (!confirm('Delete ALL videos and analysis history?')) return;
+  try {
+    await fetch(`${API}/api/videos`, { method: 'DELETE' });
+    videos = [];
+    renderAnalyses();
+  } catch (e) {
+    alert('Failed to clear data.');
+  }
+}
+
+// ── Detail View ───────────────────────────────────────────────────────
+function showDetail(videoId) {
+  const item = videos.find(v => v.video.id === videoId);
+  if (!item || !item.result) return;
+
+  const v = item.video;
+  const r = item.result;
+  const m = r.summary_metrics;
+
+  document.getElementById('home-view').classList.add('hidden');
+  const detail = document.getElementById('detail-view');
+  detail.classList.add('active');
+
+  let zonesHtml = '';
+  if (r.zone_insights && r.zone_insights.length) {
+    zonesHtml = `
+      <div class="detail-section">
+        <h3>Zone Insights</h3>
+        <table class="zone-table">
+          <thead><tr><th>Zone</th><th>Entries</th><th>Avg Dwell</th><th>Peak Occ.</th><th>Congestion</th><th>Engagement</th></tr></thead>
+          <tbody>${r.zone_insights.map(z => `
+            <tr>
+              <td><strong>${z.zone_name}</strong></td>
+              <td>${z.entries}</td>
+              <td>${z.avg_dwell_minutes}m</td>
+              <td>${z.peak_occupancy}</td>
+              <td>${(z.congestion_score * 100).toFixed(0)}%</td>
+              <td>${(z.engagement_score * 100).toFixed(0)}%</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  let insightsHtml = '';
+  if (r.top_insights && r.top_insights.length) {
+    insightsHtml = `
+      <div class="detail-section">
+        <h3>Key Insights</h3>
+        <div class="insight-cards">
+          ${r.top_insights.map(i => `
+            <div class="insight-item">
+              <h4>${i.title}</h4>
+              <p>${i.body}</p>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  let anomaliesHtml = '';
+  if (r.anomalies && r.anomalies.length) {
+    anomaliesHtml = `
+      <div class="detail-section">
+        <h3>Anomalies</h3>
+        <div class="insight-cards">
+          ${r.anomalies.map(a => `
+            <div class="insight-item">
+              <h4>${a.zone_name} — ${a.risk_level}</h4>
+              <p>${a.description}</p>
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  detail.innerHTML = `
+    <button class="back-btn" onclick="showHome()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      Back to Dashboard
+    </button>
+    <div class="detail-header">
+      <h1>${v.store_name}</h1>
+      <p>${v.camera_name} · Recorded ${v.recorded_at} · Engine: ${r.engine}</p>
+    </div>
+    ${r.executive_summary ? `<div class="exec-summary">${r.executive_summary}</div>` : ''}
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Total Visitors</div>
+        <div class="metric-value">${m.visitors}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Est. Buyers</div>
+        <div class="metric-value">${m.estimated_buyers}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Peak Occupancy</div>
+        <div class="metric-value">${m.peak_occupancy}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Avg Dwell</div>
+        <div class="metric-value">${m.avg_dwell_minutes}m</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Avg Queue</div>
+        <div class="metric-value">${m.avg_queue_minutes}m</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Busiest Zone</div>
+        <div class="metric-value" style="font-size:1rem">${m.busiest_zone}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Anomalies</div>
+        <div class="metric-value">${m.anomaly_count}</div>
+      </div>
+    </div>
+    ${zonesHtml}
+    ${insightsHtml}
+    ${anomaliesHtml}
+  `;
+}
+
+function showHome() {
+  document.getElementById('home-view').classList.remove('hidden');
+  document.getElementById('detail-view').classList.remove('active');
+  document.getElementById('detail-view').innerHTML = '';
+}
+</script>
+</body>
+</html>
